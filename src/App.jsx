@@ -5,6 +5,7 @@ import EditorTabs from './components/EditorTabs';
 import PreviewPane from './components/PreviewPane';
 import ConsolePane from './components/ConsolePane';
 import Toolbar from './components/Toolbar';
+import FileBrowser from './components/FileBrowser';
 import { saveSnippet, getSnippet, updateSnippet } from './services/snippetService';
 
 const DEFAULT_HTML = `<div class="container">
@@ -70,6 +71,7 @@ function App() {
   const [isSaving, setIsSaving] = useState(false);
   const [currentSlug, setCurrentSlug] = useState(null);
   const [runKey, setRunKey] = useState(0);
+  const [fileBrowserOpen, setFileBrowserOpen] = useState(false);
 
   const debouncedHtml = useDebounce(html, 400);
   const debouncedCss = useDebounce(css, 400);
@@ -78,15 +80,20 @@ function App() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const slug = params.get('s');
-    if (slug) loadSnippet(slug);
+
+    if (slug) {
+      loadSnippet(slug);
+    }
   }, []);
 
   const loadSnippet = async (slug) => {
     const { snippet, error } = await getSnippet(slug);
+
     if (error || !snippet) {
       alert('Failed to load snippet: ' + (error || 'Not found'));
       return;
     }
+
     setHtml(snippet.html);
     setCss(snippet.css);
     setJavascript(snippet.javascript);
@@ -96,6 +103,7 @@ function App() {
 
   const handleSave = async () => {
     setIsSaving(true);
+
     try {
       if (currentSlug) {
         const { error } = await updateSnippet(currentSlug, {
@@ -104,8 +112,12 @@ function App() {
           css,
           javascript,
         });
-        if (error) alert('Failed to update snippet: ' + error);
-        else console.log('Snippet updated successfully!');
+
+        if (error) {
+          alert('Failed to update snippet: ' + error);
+        } else {
+          console.log('Snippet updated successfully!');
+        }
       } else {
         const { snippet, error } = await saveSnippet({
           title,
@@ -113,6 +125,7 @@ function App() {
           css,
           javascript,
         });
+
         if (error || !snippet) {
           alert('Failed to save snippet: ' + (error || 'Unknown error'));
         } else {
@@ -131,6 +144,7 @@ function App() {
       alert('Please save the snippet first before sharing!');
       return;
     }
+
     const shareUrl = `${window.location.origin}${window.location.pathname}?s=${currentSlug}`;
     navigator.clipboard.writeText(shareUrl);
     alert('Share link copied to clipboard!');
@@ -142,7 +156,7 @@ function App() {
   };
 
   const handleReset = () => {
-    if (window.confirm('Are you sure you want to reset all code?')) {
+    if (confirm('Are you sure you want to reset all code?')) {
       setHtml(DEFAULT_HTML);
       setCss(DEFAULT_CSS);
       setJavascript(DEFAULT_JS);
@@ -160,7 +174,18 @@ function App() {
     ]);
   }, []);
 
-  const handleClearConsole = () => setConsoleMessages([]);
+  const handleClearConsole = () => {
+    setConsoleMessages([]);
+  };
+
+  const handleSelectSnippet = (snippet) => {
+    setHtml(snippet.html);
+    setCss(snippet.css);
+    setJavascript(snippet.javascript);
+    setTitle(snippet.title);
+    setCurrentSlug(snippet.slug);
+    window.history.pushState({}, '', `?s=${snippet.slug}`);
+  };
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -173,6 +198,7 @@ function App() {
         handleRun();
       }
     };
+
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [html, css, javascript, title, currentSlug]);
@@ -186,11 +212,19 @@ function App() {
         onReset={handleReset}
         onToggleTheme={() => setIsDark(!isDark)}
         onCodeThemeChange={setCodeTheme}
+        onOpenFileBrowser={() => setFileBrowserOpen(true)}
         isDark={isDark}
         isSaving={isSaving}
         title={title}
         onTitleChange={setTitle}
         codeTheme={codeTheme}
+      />
+
+      <FileBrowser
+        isOpen={fileBrowserOpen}
+        onClose={() => setFileBrowserOpen(false)}
+        onSelect={handleSelectSnippet}
+        isDark={isDark}
       />
 
       <div className="flex-1 flex flex-col overflow-hidden">
