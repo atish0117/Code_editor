@@ -75,3 +75,16 @@ export async function deleteSnippet(slug) {
 
   return { success: true, error: null };
 }
+
+export async function getAllSnippets() {
+  const { data: snippets, error } = await supabase
+    .from('snippets')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    return { snippets: null, error: error.message };
+  }
+
+  return { snippets, error: null };
+}
