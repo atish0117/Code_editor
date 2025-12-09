@@ -1,4 +1,4 @@
-import { Save, Share2, Play, RotateCcw, Moon, Sun, Code2 } from 'lucide-react';
+import { Save, Share2, Play, RotateCcw, Moon, Sun, Code2,Menu } from 'lucide-react';
 import ThemeSelector from './ThemeSelector';
 
 export default function Toolbar({
@@ -23,12 +23,12 @@ export default function Toolbar({
         <div className="flex items-center gap-3">
           <button
   onClick={onOpenFileBrowser}
-  className={`px-3 py-1.5 rounded-md flex items-center gap-2 text-sm font-medium transition-colors ${
+  className={`px-2 py-1 rounded-md flex items-center gap-2 text-sm font-medium transition-colors ${
     isDark ? 'bg-gray-800 hover:bg-gray-700 text-gray-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
   }`}
   title="Files"
 >
-  Files
+  <Menu size={18} />  Files
 </button>
           <div className="flex items-center gap-2">
             <Code2 size={24} className={isDark ? 'text-blue-400' : 'text-blue-600'} />
