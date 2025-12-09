@@ -204,7 +204,15 @@ function App() {
   }, [html, css, javascript, title, currentSlug]);
 
   return (
-    <div className={`h-screen flex flex-col ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+    <div className={`h-screen flex ${isDark ? "bg-gray-900" : "bg-gray-50"}`}>
+
+      <FileBrowser
+        isOpen={fileBrowserOpen}
+        onClose={() => setFileBrowserOpen(false)}
+        onSelect={handleSelectSnippet}
+        isDark={isDark}
+      />
+        <div className="flex-1 flex flex-col">
       <Toolbar
         onSave={handleSave}
         onShare={handleShare}
@@ -220,12 +228,9 @@ function App() {
         codeTheme={codeTheme}
       />
 
-      <FileBrowser
-        isOpen={fileBrowserOpen}
-        onClose={() => setFileBrowserOpen(false)}
-        onSelect={handleSelectSnippet}
-        isDark={isDark}
-      />
+     
+
+      
 
       <div className="flex-1 flex flex-col overflow-hidden">
         <div className="flex-1 flex flex-col lg:flex-row gap-0 overflow-hidden">
@@ -281,6 +286,7 @@ function App() {
           isDark={isDark}
         />
       </div>
+       </div>
     </div>
   );
 }

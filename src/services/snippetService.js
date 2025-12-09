@@ -77,14 +77,19 @@ export async function deleteSnippet(slug) {
 }
 
 export async function getAllSnippets() {
-  const { data: snippets, error } = await supabase
-    .from('snippets')
-    .select('*')
-    .order('created_at', { ascending: false });
+  try {
+    console.log('[snippetService] fetching all snippets...');
+    const res = await supabase
+      .from('snippets')
+      .select('id, slug, title, created_at, views')
+      .order('created_at', { ascending: false });
 
-  if (error) {
-    return { snippets: null, error: error.message };
+    console.log('[snippetService] response:', res);
+    if (res.error) return { snippets: null, error: res.error.message };
+    return { snippets: res.data || [], error: null };
+  } catch (err) {
+    console.error('[snippetService] unexpected:', err);
+    return { snippets: null, error: String(err) };
   }
-
-  return { snippets, error: null };
 }
+

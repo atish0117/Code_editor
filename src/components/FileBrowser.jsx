@@ -1,27 +1,46 @@
-import { useEffect, useState } from 'react';
-import { X, Loader, FileText, Trash2 } from 'lucide-react';
-import { getAllSnippets, deleteSnippet } from '../services/snippetService';
+import { useEffect, useState } from "react";
+import { X, Loader, FileText, Trash2 } from "lucide-react";
+import { getAllSnippets, deleteSnippet } from "../services/snippetService";
 
 export default function FileBrowser({ isOpen, onClose, onSelect, isDark }) {
   const [snippets, setSnippets] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [deletingId, setDeletingId] = useState(null);
 
   useEffect(() => {
+    console.log('[FileBrowser] isOpen:', isOpen);
     if (isOpen) {
       loadSnippets();
     }
   }, [isOpen]);
 
-  const loadSnippets = async () => {
-    setLoading(true);
+
+//   console.log("show all snippets",getAllSnippets)
+//   console.log("show all deleteSpinnet",deleteSnippet)
+
+
+const loadSnippets = async () => {
+  setLoading(true);
+  try {
+    console.log('[FileBrowser] calling getAllSnippets()...');
     const { snippets, error } = await getAllSnippets();
-    if (!error && snippets) {
+    console.log('[FileBrowser] getAllSnippets result:', { snippets, error });
+    if (!error && Array.isArray(snippets)) {
       setSnippets(snippets);
+    } else {
+      setSnippets([]);
     }
+  } catch (err) {
+    console.error('[FileBrowser] unexpected error:', err);
+    setSnippets([]);
+  } finally {
     setLoading(false);
-  };
+  }
+};
+
+
+
 
   const handleDelete = async (e, id) => {
     e.stopPropagation();
@@ -48,145 +67,108 @@ export default function FileBrowser({ isOpen, onClose, onSelect, isDark }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-
-      <div
-        className={`
-          relative w-full max-w-2xl max-h-[80vh] rounded-lg shadow-2xl
-          flex flex-col
-          ${isDark ? 'bg-gray-800' : 'bg-white'}
-        `}
-      >
-        {/* Header */}
-        <div
-          className={`flex items-center justify-between p-4 border-b ${
-            isDark ? 'border-gray-700' : 'border-gray-200'
-          }`}
-        >
-          <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-            My Files
-          </h2>
-
-          <button
-            onClick={onClose}
-            className={`p-1 rounded hover:bg-gray-200 ${isDark ? 'hover:bg-gray-700' : ''}`}
-          >
-            <X size={20} className={isDark ? 'text-gray-400' : 'text-gray-600'} />
-          </button>
+     <aside
+      className={`
+        fixed left-0 top-0 bottom-0 z-40 w-80 max-w-[340px] flex-shrink-0
+        transform transition-transform duration-200 ease-in-out
+        ${isOpen ? "translate-x-0" : "-translate-x-full"}
+        ${isDark ? "bg-gray-900 text-white border-r border-gray-800" : "bg-white text-gray-900 border-r border-gray-200"}
+        shadow-lg
+      `}
+      aria-hidden={!isOpen}
+    >
+      {/* Header */}
+      <div className={`flex items-center justify-between px-4 py-3 border-b ${isDark ? "border-gray-800" : "border-gray-200"}`}>
+        <div className="flex items-center gap-2">
+          <FileText size={18} className={isDark ? "text-gray-200" : "text-gray-700"} />
+          <h3 className={`font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>My Files</h3>
         </div>
-
-        {/* Search */}
-        <div className={`p-4 border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+        
+        <div className="flex items-center gap-2">
           <input
             type="text"
-            placeholder="Search files..."
+            placeholder="Search..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className={`
-              w-full px-3 py-2 rounded border
-              ${
-                isDark
-                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
-                  : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-              }
-              focus:outline-none focus:ring-2 focus:ring-blue-500
+              hidden md:inline-block px-2 py-1 rounded border text-sm
+              ${isDark ? "bg-gray-800 border-gray-700 text-gray-200" : "bg-white border-gray-200 text-gray-700"}
             `}
           />
-        </div>
-
-        {/* Snippet List */}
-        <div className="flex-1 overflow-y-auto">
-          {loading ? (
-            <div className="flex items-center justify-center h-full">
-              <Loader className="animate-spin text-blue-500" size={32} />
-            </div>
-          ) : filteredSnippets.length === 0 ? (
-            <div
-              className={`
-                flex flex-col items-center justify-center h-full p-8 text-center
-                ${isDark ? 'text-gray-400' : 'text-gray-500'}
-              `}
-            >
-              <FileText size={48} className="mb-4 opacity-50" />
-              <p className="text-lg font-medium">No files found</p>
-              <p className="text-sm mt-1">Create a new file or try a different search</p>
-            </div>
-          ) : (
-            <div
-              className="divide-y"
-              style={{
-                borderColor: isDark ? '#374151' : '#e5e7eb',
-              }}
-            >
-              {filteredSnippets.map((snippet) => (
-                <div
-                  key={snippet.id}
-                  onClick={() => {
-                    onSelect(snippet);
-                    onClose();
-                  }}
-                  className={`
-                    p-4 cursor-pointer transition-colors
-                    ${
-                      isDark
-                        ? 'hover:bg-gray-700 border-gray-700'
-                        : 'hover:bg-gray-50 border-gray-200'
-                    }
-                  `}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 min-w-0">
-                      <h3
-                        className={`font-medium truncate ${
-                          isDark ? 'text-white' : 'text-gray-900'
-                        }`}
-                      >
-                        {snippet.title}
-                      </h3>
-
-                      <div
-                        className={`text-xs mt-1 flex gap-3 ${
-                          isDark ? 'text-gray-400' : 'text-gray-500'
-                        }`}
-                      >
-                        <span>{new Date(snippet.created_at).toLocaleDateString()}</span>
-                        <span>{snippet.views} views</span>
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={(e) => handleDelete(e, snippet.id)}
-                      disabled={deletingId === snippet.id}
-                      className={`
-                        p-2 rounded ml-2 transition-colors
-                        ${
-                          isDark
-                            ? 'hover:bg-red-900/20 text-gray-400 hover:text-red-400'
-                            : 'hover:bg-red-50 text-gray-400 hover:text-red-600'
-                        }
-                        ${deletingId === snippet.id ? 'opacity-50' : ''}
-                      `}
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div
-          className={`
-            p-4 border-t text-xs
-            ${isDark ? 'border-gray-700 text-gray-400' : 'border-gray-200 text-gray-500'}
-          `}
-        >
-          {filteredSnippets.length} file{filteredSnippets.length !== 1 ? 's' : ''}
+          <button onClick={onClose} className={`p-1 rounded ${isDark ? "hover:bg-gray-800" : "hover:bg-gray-100"}`} title="Close">
+            <X size={16} className={isDark ? "text-gray-300" : "text-gray-600"} />
+          </button>
         </div>
       </div>
-    </div>
+
+      {/* Mobile search */}
+      <div className={`px-4 py-2 md:hidden border-b ${isDark ? "border-gray-800" : "border-gray-200"}`}>
+        <input
+          type="text"
+          placeholder="Search files..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className={`
+            w-full px-3 py-2 rounded border
+            ${isDark ? "bg-gray-800 border-gray-700 text-gray-200" : "bg-white border-gray-200 text-gray-700"}
+            focus:outline-none
+          `}
+        />
+      </div>
+
+      {/* List / Loading / Empty */}
+      <div className="p-2 overflow-y-auto h-full">
+        {loading ? (
+          <div className="flex items-center justify-center h-32">
+            <Loader className="animate-spin" size={28} />
+          </div>
+        ) : filteredSnippets.length === 0 ? (
+          <div className="flex flex-col items-center justify-center p-6 text-center text-sm text-gray-400">
+            <FileText size={42} className="mb-3 opacity-40" />
+            <div>No files found</div>
+            <div className="text-xs mt-1">Create a snippet to see it here</div>
+          </div>
+        ) : (
+          <ul className="space-y-1">
+            {filteredSnippets.map((snippet) => (
+              <li
+                key={snippet.id}
+                className={`flex items-start justify-between gap-3 p-3 rounded cursor-pointer hover:${isDark ? "bg-gray-800" : "bg-gray-50"}`}
+                onClick={() => {
+                  onSelect(snippet);
+                  // close on small screens to act like a drawer
+                  if (window.innerWidth < 1024) onClose();
+                }}
+              >
+                <div className="min-w-0">
+                  <div className="text-sm font-medium truncate">{snippet.title || snippet.slug}</div>
+                  <div className={`text-xs mt-1 flex gap-2 ${isDark ? "text-gray-400" : "text-gray-500"}`}>
+                    <span>{new Date(snippet.created_at).toLocaleDateString()}</span>
+                    <span>{snippet.views ?? 0} views</span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={(e) => handleDelete(e, snippet.id)}
+                  disabled={deletingId === snippet.id}
+                  className={`p-1 rounded ${isDark ? "hover:bg-red-900/20" : "hover:bg-red-50"}`}
+                  title="Delete"
+                >
+                  <Trash2 size={14} className={deletingId === snippet.id ? "opacity-50" : ""} />
+                </button>
+              </li>
+            ))}
+          </ul>
+          
+        )}
+        {/* Footer */}
+        <div className={ `p-4 border-t text-xs ${ isDark ? "border-gray-700 text-gray-400" : "border-gray-200 text-gray-500" } `} >
+         {filteredSnippets.length} file{filteredSnippets.length !== 1 ?"s" : ""}
+          </div>
+      </div>
+
+      
+      
+    </aside>
   );
 }

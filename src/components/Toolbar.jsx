@@ -13,11 +13,23 @@ export default function Toolbar({
   title,
   onTitleChange,
   codeTheme,
+  onOpenFileBrowser,
 }) {
   return (
     <div className={`border-b ${isDark ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'}`}>
       <div className="h-14 flex items-center justify-between px-4">
+
+        
         <div className="flex items-center gap-3">
+          <button
+  onClick={onOpenFileBrowser}
+  className={`px-3 py-1.5 rounded-md flex items-center gap-2 text-sm font-medium transition-colors ${
+    isDark ? 'bg-gray-800 hover:bg-gray-700 text-gray-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+  }`}
+  title="Files"
+>
+  Files
+</button>
           <div className="flex items-center gap-2">
             <Code2 size={24} className={isDark ? 'text-blue-400' : 'text-blue-600'} />
             <input
