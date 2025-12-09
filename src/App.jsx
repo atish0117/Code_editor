@@ -89,17 +89,17 @@ function App() {
   const loadSnippet = async (slug) => {
     const { snippet, error } = await getSnippet(slug);
 
-    if (error || !snippet) {
-      alert('Failed to load snippet: ' + (error || 'Not found'));
-      return;
-    }
+    // if (error || !snippet) {
+    //   alert('Failed to load snippet: ' + (error || 'Not found'));
+    //   return;
+    // }
 
     setHtml(snippet.html);
     setCss(snippet.css);
     setJavascript(snippet.javascript);
     setTitle(snippet.title);
     setCurrentSlug(snippet.slug);
-  };
+  };            
 
   const handleSave = async () => {
     setIsSaving(true);
